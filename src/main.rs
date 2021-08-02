@@ -4,7 +4,7 @@ mod cipher;
 mod device;
 pub use device::usb::{USBDevice, DevInfo, DevAuthInfo};
 
-pub use device::usb_test::{libusb_info, list_devices, read_devices};
+pub use device::usb_test::{libusb_info, list_devices, read_devices, lsusb};
 
 fn hex_match_list(a: u8) -> u8 {
     match Some(a) {
@@ -59,7 +59,7 @@ fn str_to_u16(value: &str) -> Result<u16, std::io::Error> {
 }
 
 fn main() {
-    embed_resource::compile("./icon.rc");
+    // embed_resource::compile("./icon.rc");
 
     // usb_export_publickey(0x2fd0, 0x1002, String::from("12345678"));
 
@@ -93,11 +93,13 @@ fn main() {
             // .args_from_usage("-p, --pid=[pid] 'idProduct'")
             .subcommands( vec![
                 SubCommand::with_name("info").about("获取libusb库信息"),
+                SubCommand::with_name("lsusb").about("获取当前USB设备列表"),
                 SubCommand::with_name("list").about("获取USB设备列表详细信息"),
                 SubCommand::with_name("read").about("读取USB设备")]))
         .subcommand(SubCommand::with_name("usb")
             .about("USB调试")
             .subcommands( vec![
+                SubCommand::with_name("lsusb").about("获取当前USB设备列表"),
                 SubCommand::with_name("random").about("获取USB随机数，请使用OPTIONS:<length>指定随机数长度"),
                 SubCommand::with_name("devinfo").about("获取USB设备信息，请使用OPTIONS:<VID>、<PID>指定需要打开的设备"),
                 SubCommand::with_name("publickey").about("获取USB设备公钥，请使用OPTIONS:<VID>、<PID>指定需要打开的设备")]))
@@ -131,6 +133,7 @@ fn main() {
         if let Some(matches) = matches.subcommand_matches("test") {
             match matches.subcommand_name() {
                 Some("info") => libusb_info(),
+                Some("lsusb") => lsusb().unwrap(),
                 Some("list") => list_devices().unwrap(),
                 Some("read") => read_devices(vendor_id, product_id),
                 _            => {println!("no match!")},
@@ -139,6 +142,7 @@ fn main() {
 
         if let Some(matches) = matches.subcommand_matches("usb") {
             match matches.subcommand_name() {
+
                 Some("random") => {
                     let d = USBDevice::new(0x2fd0, 0x1002);
                     let mut random = Vec::with_capacity(length);

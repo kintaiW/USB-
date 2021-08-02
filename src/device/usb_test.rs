@@ -39,6 +39,20 @@ pub fn libusb_info() {
     println!("supports detach kernel driver? {}", context.supports_detach_kernel_driver())
 }
 
+pub fn lsusb() -> libusb::Result<()> {
+    let context = libusb::Context::new()?;
+
+    for device in context.devices()?.iter() {
+        let device_desc = match device.device_descriptor() {
+            Ok(d) => d,
+            Err(_) => continue
+        };
+        println!("Bus {:03} Device {:03} ID {:04x}:{:04x} {}", device.bus_number(), device.address(), device_desc.vendor_id(), device_desc.product_id(), get_speed(device.speed()));
+        
+     };
+     Ok(())
+}
+
 pub fn list_devices() -> libusb::Result<()>{
     let timeout = Duration::from_secs(1);
 
